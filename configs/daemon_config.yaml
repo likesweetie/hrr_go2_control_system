@@ -1,0 +1,11 @@
+shm:
+  name: "/shm"
+  size_bytes: 1048576   # 1MB
+  create_if_missing: true
+  unlink_on_destroy: false
+
+processes:
+  - name: "lcm_subscriber"
+    exec: "../build/lcm_subscriber"
+    args: ["../configs/lcm_subscriber_config.yaml"]
+    launch_in_terminal: true
