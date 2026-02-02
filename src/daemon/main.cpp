@@ -173,7 +173,6 @@ int main(int argc, char** argv)
     // main loop
     while (g_run.load(std::memory_order_relaxed)) {
 
-        std::cout << d.shm->gps_data.timestamp <<std::endl;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
