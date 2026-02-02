@@ -1,11 +1,18 @@
 shm:
-  name: "/shm"
+  name: "/shm0"
   size_bytes: 1048576   # 1MB
   create_if_missing: true
-  unlink_on_destroy: false
+  unlink_on_destroy: true
 
 processes:
   - name: "lcm_subscriber"
     exec: "../build/lcm_subscriber"
     args: ["../configs/lcm_subscriber_config.yaml"]
     launch_in_terminal: true
+    create_process_group: true
+
+  - name: "main"
+    exec: "../build/main"
+    args: ["eth0"]
+    launch_in_terminal: true
+    create_process_group: true

@@ -1,21 +1,14 @@
 #pragma once
 
 #include <string>
+#include <cstdint>
 
 struct GpsData
 {
-    double lat_deg{0.0};
-    double lon_deg{0.0};
-    double alt_m{0.0};
-
-    float  vel_n_mps{0.0f};
-    float  vel_e_mps{0.0f};
-    float  vel_d_mps{0.0f};
-
-    float  yaw_rad{0.0f};
-    float  yaw_std_rad{0.0f};
-
-    std::uint64_t timestamp_ns{0};
+    
+    double   ucm_x;
+    double   ucm_y; 
+    int64_t  timestamp{0};
 };
 
 struct ShmData

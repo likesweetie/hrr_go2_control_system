@@ -213,7 +213,7 @@ void Custom::Command(bool State)
         }
     }
 
-    DataRun();
+    // DataRun();
 }
 
 void Custom::Homing_Joint()

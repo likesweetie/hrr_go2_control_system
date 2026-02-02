@@ -20,7 +20,7 @@ std::optional<LcmSubscriberConfig> LoadLcmSubscriberConfig(const std::string& ya
 class LcmSubscriber
 {
 public:
-    using Callback = std::function<void(const void* data, std::size_t size, const std::string& channel)>;
+    using Callback = std::function<void(const void* data, std::size_t size, const std::string& channel, const gps_lcm_type::gps_t* msg)>;
 
     LcmSubscriber() = default;
     ~LcmSubscriber() = default;

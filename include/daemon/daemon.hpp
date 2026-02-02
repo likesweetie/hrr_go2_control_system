@@ -21,7 +21,7 @@ struct ShmConfig
     std::string name;              // e.g. "/robot_shm"
     std::size_t size_bytes{0};     // total bytes
     bool create_if_missing{true};  // O_CREAT
-    bool unlink_on_destroy{false}; // shm_unlink on Close/Destructor
+    bool unlink_on_destroy{true}; // shm_unlink on Close/Destructor
 };
 
 // =====================
@@ -34,7 +34,9 @@ struct ProcessSpec
     std::vector<std::string> args;      // argv[1..]
     std::map<std::string, std::string> env; // setenv() pairs
     bool create_process_group{true};    // setpgid(0,0) in child
-    bool launch_in_terminal;
+    bool launch_in_terminal{true};
+
+    
 };
 
 struct ProcessInfo
@@ -48,6 +50,9 @@ struct ProcessInfo
     bool exited{false};
     int exit_code{0};
     int term_signal{0};
+
+    int pgid{-1};                  // process group id (보통 pid)
+    bool use_process_group{false}; // create_process_group 적용 여부
 };
 
 static std::string ShellEscapeSingleQuotes(const std::string& s)
@@ -113,6 +118,7 @@ public:
 private:
     // internal helper to build argv for execve
     static std::vector<char*> BuildArgv_(const std::string& exec, const std::vector<std::string>& args);
+    bool PkillExact_(const std::string& comm_name, int sig);
 
 private:
 
