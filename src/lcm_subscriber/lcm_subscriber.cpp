@@ -90,8 +90,8 @@ void LcmSubscriber::OnMsg_(const lcm::ReceiveBuffer* rbuf,
     }
     // rbuf->data : raw bytes (void*)
     // rbuf->data_size : length
-    std::cout << "[INFO] lcm handle\n";
+    // std::cout << "[INFO] lcm handle\n";
     if (cb_) {
-        cb_(rbuf->data, static_cast<std::size_t>(rbuf->data_size), channel);
+        cb_(rbuf->data, static_cast<std::size_t>(rbuf->data_size), channel,  msg);
     }
 }

@@ -1,5 +1,5 @@
 shm:
-  name: "/shm"
+  name: "/shm0"
   size_bytes: 1048576   # 1MB
   create_if_missing: true
   unlink_on_destroy: true
