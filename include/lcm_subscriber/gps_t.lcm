@@ -3,6 +3,6 @@ package gps_lcm_type;
 struct gps_t
 {
     int64_t  timestamp;
-    double   alt;
-    double   lat; 
+    double   ucm_x;
+    double   ucm_y; 
 }
