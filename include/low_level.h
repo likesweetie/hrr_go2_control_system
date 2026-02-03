@@ -317,6 +317,10 @@ private:
     double Stick_RX = 0.0;
     double Stick_RY = 0.0;
 
+    double ucm_x_origin = 0.0f;
+    double ucm_y_origin = 0.0f;
+    bool ucm_origin_init = true;
+
 protected:
     // publisher
     ChannelPublisherPtr<unitree_go::msg::dds_::LowCmd_> lowcmd_publisher;

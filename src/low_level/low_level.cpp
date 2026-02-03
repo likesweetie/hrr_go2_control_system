@@ -162,6 +162,16 @@ void Custom::Command(bool State)
         }
         case WALKING:
         {
+            if (!ucm_origin_init)
+            {
+                std::cout << "ucm origin set" << std::endl;
+                ucm_x_origin = shm_->gps_data.ucm_x;
+                ucm_y_origin = shm_->gps_data.ucm_y;
+                ucm_origin_init = true;
+}
+            }
+                
+
             if(start_count > 2)
             {
                 for (int i = 0; i < NUM_LEG; i++)
@@ -240,6 +250,7 @@ void Custom::Homing_Joint()
             if (inputChar == 'R' || inputChar == 'r')
             {
                 std::cout << "Start !!!" << std::endl;
+                
 
                 Via_Pos[FL] << q_(0), q_(1), q_(2);
                 Via_Pos[FR] << q_(3), q_(4), q_(5);
@@ -440,9 +451,20 @@ void Custom::GPS_Read()
     const GpsData& gps = shm_->gps_data;
 
     // Robot_Pose에 저장 (x=lat, y=lon, z=alt)
-    Robot_Pose(0) = gps.lat_deg;
-    Robot_Pose(1) = gps.lon_deg;
-    Robot_Pose(2) = gps.alt_m;
+    
+    if (ucm_origin_init)
+    {
+        Robot_Pose(0) = gps.ucm_x - ucm_x_origin;
+        Robot_Pose(1) = gps.ucm_y - ucm_y_origin;
+        Robot_Pose(2) = 0.f;
+    }
+    else
+    {
+        Robot_Pose(0) = 0.f;
+        Robot_Pose(1) = 0.f;
+        Robot_Pose(2) = 0.f;
+    }
+
 
     last_counter_ = c;
 }
@@ -521,11 +543,15 @@ void Custom::Run()
     Motion_Time++;
     Plot_Time += 0.002;
 
+
+
     if (Motion_Time < 500)
     {
         Encoder_Read();
         IMU_Read();
         FootForce_Read();
+        GPS_Read();
+        High_Observation_Update();
         Observation_Update();
     }
     else if (Motion_Time >= 500)
@@ -533,6 +559,8 @@ void Custom::Run()
         Encoder_Read();
         IMU_Read();
         FootForce_Read();
+        GPS_Read();
+        High_Observation_Update();
         Observation_Update();
 
         Command(Joint_State);
@@ -556,7 +584,7 @@ void Custom::Observation_Update()
 void Custom::High_Observation_Update()
 {
     HIGH.Set_IMU(go2_imu_lin_acc, go2_imu_rpy_dot, Quat);
-    HIGH.Set_Position(Robot_Pos, Target_Pos);
+    HIGH.Set_Position(Robot_Pose, Target_Pos);
     HIGH.Set_High_Observation();
 }
 
@@ -606,7 +634,7 @@ void Custom::FSM_Waypoint()
     switch (current_mode)
     {
     case FSM_Mode::start_to_way1:
-        dist = distanceToTarget(Robot_Pos, waypoint[1]);
+        dist = distanceToTarget(Robot_Pose, waypoint[1]);
         if (dist < arrive_dist)
         {
             current_mode = FSM_Mode::way1_to_way2;
@@ -631,7 +659,7 @@ void Custom::FSM_Waypoint()
         break;
 
     case FSM_Mode::way2_to_way3:
-        dist = distanceToTarget(Robot_Pos, waypoint[3]);
+        dist = distanceToTarget(Robot_Pose, waypoint[3]);
         if (dist < arrive_dist)
         {
             current_mode = FSM_Mode::way3_to_way4;
@@ -644,7 +672,7 @@ void Custom::FSM_Waypoint()
         break;
 
     case FSM_Mode::way3_to_way4:
-        dist = distanceToTarget(Robot_Pos, waypoint[4]);
+        dist = distanceToTarget(Robot_Pose, waypoint[4]);
         if (dist < arrive_dist)
         {
             current_mode = FSM_Mode::way4_to_way5;
@@ -656,7 +684,7 @@ void Custom::FSM_Waypoint()
         break;
 
     case FSM_Mode::way4_to_way5:
-        dist = distanceToTarget(Robot_Pos, waypoint[5]);
+        dist = distanceToTarget(Robot_Pose, waypoint[5]);
         if (dist < arrive_dist)
         {
             current_mode = FSM_Mode::way5_to_start;
@@ -668,7 +696,7 @@ void Custom::FSM_Waypoint()
         break;
 
     case FSM_Mode::way5_to_start:
-        dist = distanceToTarget(Robot_Pos, waypoint[0]);
+        dist = distanceToTarget(Robot_Pose, waypoint[0]);
         if (dist < arrive_dist)
         {
             current_mode = FSM_Mode::start_to_way1;
