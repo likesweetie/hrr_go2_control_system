@@ -1,5 +1,5 @@
-#ifndef DEPLOY_H
-#define DEPLOY_H
+#ifndef HIGHDEPLOY_H
+#define HIGHDEPLOY_H
 
 #include <iostream>
 #include <cmath>
@@ -17,12 +17,12 @@
 using namespace torch::indexing;
 using torch::indexing::Slice;
 
-class Deploy
+class DeployHigh
 {
 public:
 
-    Deploy();
-    ~Deploy();
+    DeployHigh();
+    ~DeployHigh();
 
     void Set_IMU(Eigen::VectorXd Accel_, Eigen::VectorXd Gyro_, Eigen::Quaterniond quat);
     void Set_Position(Eigen::VectorXd Robot_Pos_, Eigen::VectorXd Target_Pos_);
@@ -31,6 +31,10 @@ public:
 
     Eigen::Vector3d GetAction() { return actions; }
 
+    Eigen::VectorXd Robot_pos = Eigen::VectorXd::Zero(2);
+    Eigen::VectorXd Target_pos = Eigen::VectorXd::Zero(2);
+    Eigen::VectorXd Error_pos = Eigen::VectorXd::Zero(2);
+    Eigen::VectorXd Local_Error_pos = Eigen::VectorXd::Zero(2);
     Eigen::VectorXd Imu_acc = Eigen::VectorXd::Zero(3);
     Eigen::VectorXd Imu_ang_vel = Eigen::VectorXd::Zero(3);
     Eigen::VectorXd Quat = Eigen::VectorXd::Zero(4);

@@ -35,6 +35,11 @@ Custom::Custom()
 
     controlmode = INIT;
     motormode = M_HOMING;
+
+    current_mode = FSM_Mode::way5_to_start;
+
+    Target_Pos(0) = 0;
+    Target_Pos(1) = 5.0;
 }
 
 Custom::~Custom()
@@ -167,8 +172,9 @@ void Custom::Command(bool State)
                 std::cout << "ucm origin set" << std::endl;
                 ucm_x_origin = shm_->gps_data.ucm_x;
                 ucm_y_origin = shm_->gps_data.ucm_y;
+                std::cout << ucm_x_origin << "  |  " << ucm_y_origin << "  |  " << std::endl;
                 ucm_origin_init = true;
-}
+
             }
                 
 
@@ -201,7 +207,7 @@ void Custom::Command(bool State)
                     // target_joint(i) = Default_Pos(i);
                 }
 
-                std::cout << "Action!!!!!!!" << std::endl;
+                // std::cout << "Action!!!!!!!" << std::endl;
             }
             else
             {
@@ -445,28 +451,27 @@ void Custom::GPS_Read()
 {
     if (!shm_) return;
 
-    const std::uint64_t c = shm_->counter;
-    if (c == last_counter_) return;   // 새 데이터 없으면 스킵
 
     const GpsData& gps = shm_->gps_data;
 
-    // Robot_Pose에 저장 (x=lat, y=lon, z=alt)
+    // Robot_Pos에 저장 (x=lat, y=lon, z=alt)
     
     if (ucm_origin_init)
     {
-        Robot_Pose(0) = gps.ucm_x - ucm_x_origin;
-        Robot_Pose(1) = gps.ucm_y - ucm_y_origin;
-        Robot_Pose(2) = 0.f;
+        Robot_Pos(0) = gps.ucm_x - ucm_x_origin;
+        Robot_Pos(1) = gps.ucm_y - ucm_y_origin;
+        // Robot_Pos(2) = 0.f;
     }
     else
     {
-        Robot_Pose(0) = 0.f;
-        Robot_Pose(1) = 0.f;
-        Robot_Pose(2) = 0.f;
+        Robot_Pos(0) = 0.f;
+        Robot_Pos(1) = 0.f;
+        // Robot_Pos(2) = 0.f;
     }
 
+    // std::cout << Robot_Pos(0) << "  |  " << Robot_Pos(1) << "  |  " << std::endl;
 
-    last_counter_ = c;
+
 }
 
 void Custom::FootForce_Read()
@@ -576,16 +581,16 @@ void Custom::Observation_Update()
 {
     ISSAC.Set_IMU(go2_imu_lin_acc, go2_imu_rpy_dot, Quat);
     ISSAC.Set_Encoder(q_, dq_);
-    ISSAC.Set_Joystick(x_vel_command, y_vel_command, 0.0, yaw_vel_command, height_command);  
-    // ISSAC.Set_Joystick(LPF_High_Command(0), LPF_High_Command(1), LPF_High_Command(2), yaw_vel_command, height_command);  
+    // ISSAC.Set_Joystick(x_vel_command, y_vel_command, 0.0, yaw_vel_command, height_command);  
+    ISSAC.Set_Joystick(LPF_High_Command(0), LPF_High_Command(1), LPF_High_Command(2), yaw_vel_command, height_command);  
     ISSAC.Set_Observation();
 }
 
 void Custom::High_Observation_Update()
 {
     HIGH.Set_IMU(go2_imu_lin_acc, go2_imu_rpy_dot, Quat);
-    HIGH.Set_Position(Robot_Pose, Target_Pos);
-    HIGH.Set_High_Observation();
+    HIGH.Set_Position(Robot_Pos, Target_Pos);
+    HIGH.Set_Observation();
 }
 
 void Custom::PolicyRun()
@@ -595,7 +600,7 @@ void Custom::PolicyRun()
         ISSAC.Inference();
 
         for (int i = 0; i < NUM_LEG; i++)
-        {
+        { 
             action_leg[i] = ISSAC.GetAction(i);
         }
     }
@@ -634,7 +639,7 @@ void Custom::FSM_Waypoint()
     switch (current_mode)
     {
     case FSM_Mode::start_to_way1:
-        dist = distanceToTarget(Robot_Pose, waypoint[1]);
+        dist = distanceToTarget(Robot_Pos, waypoint[1]);
         if (dist < arrive_dist)
         {
             current_mode = FSM_Mode::way1_to_way2;
@@ -659,7 +664,7 @@ void Custom::FSM_Waypoint()
         break;
 
     case FSM_Mode::way2_to_way3:
-        dist = distanceToTarget(Robot_Pose, waypoint[3]);
+        dist = distanceToTarget(Robot_Pos, waypoint[3]);
         if (dist < arrive_dist)
         {
             current_mode = FSM_Mode::way3_to_way4;
@@ -672,7 +677,7 @@ void Custom::FSM_Waypoint()
         break;
 
     case FSM_Mode::way3_to_way4:
-        dist = distanceToTarget(Robot_Pose, waypoint[4]);
+        dist = distanceToTarget(Robot_Pos, waypoint[4]);
         if (dist < arrive_dist)
         {
             current_mode = FSM_Mode::way4_to_way5;
@@ -684,7 +689,7 @@ void Custom::FSM_Waypoint()
         break;
 
     case FSM_Mode::way4_to_way5:
-        dist = distanceToTarget(Robot_Pose, waypoint[5]);
+        dist = distanceToTarget(Robot_Pos, waypoint[5]);
         if (dist < arrive_dist)
         {
             current_mode = FSM_Mode::way5_to_start;
@@ -696,7 +701,7 @@ void Custom::FSM_Waypoint()
         break;
 
     case FSM_Mode::way5_to_start:
-        dist = distanceToTarget(Robot_Pose, waypoint[0]);
+        dist = distanceToTarget(Robot_Pos, waypoint[0]);
         if (dist < arrive_dist)
         {
             current_mode = FSM_Mode::start_to_way1;

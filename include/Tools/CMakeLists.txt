@@ -2,8 +2,7 @@
 cmake_minimum_required(VERSION 3.5)
 
 # 라이브러리 이름 설정
-add_library(Tools Deploy.cpp)
-add_library(Tools Deploy_High.cpp)
+add_library(Tools Deploy.cpp Deploy_High.cpp)
 
 # PyTorch 경로 설정
 include_directories(

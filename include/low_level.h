@@ -23,6 +23,7 @@
 #include "Deploy_High.hpp"
 #include "Deploy.hpp"
 #include "Go2_Enum.h"
+#include "shm_utils.hpp"
 
 using namespace unitree::common;
 using namespace unitree::robot;
@@ -62,9 +63,14 @@ private:
     void PlotRun();
     void JoyRun();
     void DataRun();
+    void FSM_Waypoint();
 
     ShmData* shm_{nullptr};          
     std::uint64_t last_counter_{0};  
+
+    double ucm_x_origin = 0.0f;
+    double ucm_y_origin = 0.0f;
+    bool ucm_origin_init = false;
 
     void JoyStick_Control()
     {
@@ -175,11 +181,11 @@ private:
 
     const std::vector<Waypoint> waypoint = {
         {"START",   0.0,                0.0},
-        {"WP1",     0.0,                20.0},
-        {"WP2",    -10.0,               20.0},
-        {"WP3",    -20.0,               20.0},
-        {"WP4",    -20.0,               0.0},
-        {"WP5",    -10.0,               0.0},
+        {"WP1",     0.0,                5.0},
+        {"WP2",    -2.5,               5.0},
+        {"WP3",    -5.0,               5.0},
+        {"WP4",    -2.0,               0.0},
+        {"WP5",    -2.5,               0.0},
     };
 
     double distanceToTarget(const Eigen::VectorXd& robot, const Waypoint& target)
@@ -201,6 +207,7 @@ private:
     FSM_Mode current_mode = FSM_Mode::start_to_way1;
 
     Deploy ISSAC;
+    DeployHigh HIGH;
 
     ControlMode controlmode;
     MotorMode motormode;
@@ -317,9 +324,7 @@ private:
     double Stick_RX = 0.0;
     double Stick_RY = 0.0;
 
-    double ucm_x_origin = 0.0f;
-    double ucm_y_origin = 0.0f;
-    bool ucm_origin_init = true;
+
 
 protected:
     // publisher

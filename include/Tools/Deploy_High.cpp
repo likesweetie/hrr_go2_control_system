@@ -1,11 +1,11 @@
-#include "Deploy.hpp"
+#include "Deploy_High.hpp"
 
-Deploy::Deploy() : device(torch::kCPU)
+DeployHigh::DeployHigh() : device(torch::kCPU)
 {
     Robot_pos.setZero(2);
     Target_pos.setZero(2);
-    Err_pos.setZero(2);
-    Local_Err_pos.setZero(2);
+    Error_pos.setZero(2);
+    Local_Error_pos.setZero(2);
     Imu_acc.setZero(NUM_AXIS);
     Imu_ang_vel.setZero(NUM_AXIS);
     Imu_quat.setZero(4);
@@ -29,9 +29,9 @@ Deploy::Deploy() : device(torch::kCPU)
     }
 }
 
-Deploy::~Deploy() {}
+DeployHigh::~DeployHigh() {}
 
-void Deploy::Set_IMU(Eigen::VectorXd Accel_, Eigen::VectorXd Gyro_, Eigen::Quaterniond quat)
+void DeployHigh::Set_IMU(Eigen::VectorXd Accel_, Eigen::VectorXd Gyro_, Eigen::Quaterniond quat)
 {
     std::lock_guard<std::mutex> lock(runner_mutex);
 
@@ -74,7 +74,7 @@ void Deploy::Set_IMU(Eigen::VectorXd Accel_, Eigen::VectorXd Gyro_, Eigen::Quate
     // std::cout << "gravity : " << Projected_gravity(0) << " | " << Projected_gravity(1) << " | " << Projected_gravity(2) << std::endl;
 }
 
-void Deploy::Set_Position(Eigen::VectorXd Robot_pos_, Eigen::VectorXd Target_pos_)
+void DeployHigh::Set_Position(Eigen::VectorXd Robot_pos_, Eigen::VectorXd Target_pos_)
 {
     Robot_pos = Robot_pos_;
     Target_pos = Target_pos_;
@@ -96,13 +96,13 @@ void Deploy::Set_Position(Eigen::VectorXd Robot_pos_, Eigen::VectorXd Target_pos
     double lx =  std::cos(yaw)*ex + std::sin(yaw)*ey;
     double ly = -std::sin(yaw)*ex + std::cos(yaw)*ey;
 
-    Local_Error_Pos(0) = lx;
-    Local_Error_Pos(1) = ly;
+    Local_Error_pos(0) = lx;
+    Local_Error_pos(1) = ly;
 
-    std::cout << "Target_Pos : " << Target_Pos(0) << "  |  " << Target_Pos(1) << std::endl;
+    // std::cout << "Target_Pos : " << Target_pos(0) << "  |  " << Target_pos(1) << std::endl;
 }
 
-void Deploy::Set_Observation()
+void DeployHigh::Set_Observation()
 {
     Eigen::Vector3d local_local_error_pos;
     Eigen::Vector3d local_projected_gravity;
@@ -110,9 +110,8 @@ void Deploy::Set_Observation()
 
     {
         std::lock_guard<std::mutex> lock(runner_mutex);
-        local_local_error_pos = Local_Error_Pos;
+        local_local_error_pos = Local_Error_pos;
         local_projected_gravity = Projected_gravity;
-        local_default_dof_pos = default_dof_pos;
         local_last_action = last_action;
     }
 
@@ -134,7 +133,7 @@ void Deploy::Set_Observation()
     }
 }
 
-void Deploy::Inference()
+void DeployHigh::Inference()
 {
     torch::Tensor local_observation_tensor;
 
@@ -158,11 +157,11 @@ void Deploy::Inference()
 
         last_action = action;
 
-        std::cout << "action : " << last_action(0) << " | " << last_action(1) << " | " << last_action(2) << std::endl;
+        // std::cout << "action : " << last_action(0) << " | " << last_action(1) << " | " << last_action(2) << std::endl;
         {
             std::lock_guard<std::mutex> lock(runner_mutex);
         
-            actions[i](X) = action;
+            actions = action;
             
         }
 
