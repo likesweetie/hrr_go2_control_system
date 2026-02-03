@@ -1,0 +1,5 @@
+logger:
+  path: "/home/GPS_logs"
+  filename: "gps_log0.csv"
+  period_sec: 0.1   # 없으면 기본 0.1초
+  fsync: true       # 없으면 기본 true
