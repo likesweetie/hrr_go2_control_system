@@ -37,9 +37,6 @@ Custom::Custom()
     motormode = M_HOMING;
 
     current_mode = FSM_Mode::way5_to_start;
-
-    Target_Pos(0) = 0;
-    Target_Pos(1) = 5.0;
 }
 
 Custom::~Custom()
@@ -170,9 +167,9 @@ void Custom::Command(bool State)
             if (!ucm_origin_init)
             {
                 std::cout << "ucm origin set" << std::endl;
-                ucm_x_origin = shm_->gps_data.ucm_x;
-                ucm_y_origin = shm_->gps_data.ucm_y;
-                std::cout << ucm_x_origin << "  |  " << ucm_y_origin << "  |  " << std::endl;
+                ucm_x_origin = shm_->gps_data.ucm_x* 1.0f;
+                ucm_y_origin = shm_->gps_data.ucm_y* 1.0f;
+                std::cout << ucm_x_origin* 1.0f << "  |  " << ucm_y_origin* 1.0f << "  |  " << std::endl;
                 ucm_origin_init = true;
 
             }
@@ -180,6 +177,7 @@ void Custom::Command(bool State)
 
             if(start_count > 2)
             {
+                FSM_Waypoint();
                 for (int i = 0; i < NUM_LEG; i++)
                 {
                     if (std::isnan(action_leg[i](X)) || std::isnan(action_leg[i](Y)) || std::isnan(action_leg[i](Z)))
@@ -458,8 +456,8 @@ void Custom::GPS_Read()
     
     if (ucm_origin_init)
     {
-        Robot_Pos(0) = gps.ucm_x - ucm_x_origin;
-        Robot_Pos(1) = gps.ucm_y - ucm_y_origin;
+        Robot_Pos(0) = (gps.ucm_x - ucm_x_origin) * 1.0f;
+        Robot_Pos(1) = (gps.ucm_y - ucm_y_origin)* 1.0f;
         // Robot_Pos(2) = 0.f;
     }
     else
@@ -535,7 +533,7 @@ void Custom::Joint_Controller()
             low_cmd.motor_cmd()[i].tau() = 0;
         }
 
-        std::cout << "DAMPING" << std::endl;
+        // std::cout << "DAMPING" << std::endl;
     }
 
     low_cmd.crc() = crc32_core((uint32_t *)&low_cmd, (sizeof(unitree_go::msg::dds_::LowCmd_) >> 2) - 1);
@@ -582,7 +580,7 @@ void Custom::Observation_Update()
     ISSAC.Set_IMU(go2_imu_lin_acc, go2_imu_rpy_dot, Quat);
     ISSAC.Set_Encoder(q_, dq_);
     // ISSAC.Set_Joystick(x_vel_command, y_vel_command, 0.0, yaw_vel_command, height_command);  
-    ISSAC.Set_Joystick(LPF_High_Command(0), LPF_High_Command(1), LPF_High_Command(2), yaw_vel_command, height_command);  
+    ISSAC.Set_Joystick(LPF_High_Command(0), LPF_High_Command(1), 0.0, LPF_High_Command(2), height_command);  
     ISSAC.Set_Observation();
 }
 
@@ -646,6 +644,7 @@ void Custom::FSM_Waypoint()
             Current_Target = waypoint[2];
             Target_Pos(0) = Current_Target.x;
             Target_Pos(1) = Current_Target.y;
+            std::cout << "way1_to_way2" << std::endl;
         }
         // std::cout << "start_to_way1" << std::endl;
         break;
@@ -658,6 +657,7 @@ void Custom::FSM_Waypoint()
             Current_Target = waypoint[3];
             Target_Pos(0) = Current_Target.x;
             Target_Pos(1) = Current_Target.y;
+            std::cout << "way2_to_way3" << std::endl;
         }
             
         // std::cout << "way1_to_way2" << std::endl;
@@ -671,6 +671,7 @@ void Custom::FSM_Waypoint()
             Current_Target = waypoint[4];
             Target_Pos(0) = Current_Target.x;
             Target_Pos(1) = Current_Target.y;
+            std::cout << "way3_to_way4" << std::endl;
         }
             
         // std::cout << "way2_to_way3" << std::endl;
@@ -684,6 +685,7 @@ void Custom::FSM_Waypoint()
             Current_Target = waypoint[5];
             Target_Pos(0) = Current_Target.x;
             Target_Pos(1) = Current_Target.y;
+            std::cout << "way4_to_way5" << std::endl;
         }
         // std::cout << "way3_to_way4" << std::endl;
         break;
@@ -696,6 +698,8 @@ void Custom::FSM_Waypoint()
             Current_Target = waypoint[0];
             Target_Pos(0) = Current_Target.x;
             Target_Pos(1) = Current_Target.y;
+            std::cout << "way5_to_startS" << std::endl;
+            
         }
         // std::cout << "way4_to_way5" << std::endl;
         break;
@@ -708,6 +712,7 @@ void Custom::FSM_Waypoint()
             Current_Target = waypoint[1];
             Target_Pos(0) = Current_Target.x;
             Target_Pos(1) = Current_Target.y;
+            std::cout << "start_to_way1" << std::endl;
         }
         // std::cout << "way5_to_start" << std::endl;
         break;

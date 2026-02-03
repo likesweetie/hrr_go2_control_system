@@ -49,14 +49,27 @@ target_link_libraries(lcm_subscriber
 #---------------------------------
 
 
+#-----------------Logger----------------
+add_executable(logger
+    src/logger/main.cpp
+)
+target_include_directories(logger
+    PRIVATE
+        ${CMAKE_SOURCE_DIR}/include
+)
+target_link_libraries(logger
+    PRIVATE yaml-cpp lcm rt
+)
+#---------------------------------
+
 # -------- common include dirs (replacing global include_directories) ----------
 set(LOW_LEVEL_COMMON_INCLUDES
     ${EIGEN3_INCLUDE_DIR}
     ${Python_INCLUDE_DIRS}
     ${CMAKE_SOURCE_DIR}/include
     ${CMAKE_SOURCE_DIR}/include/Tools
-    ${CMAKE_SOURCE_DIR}/include/daemon
-    ${CMAKE_SOURCE_DIR}/include/lcm_subscriber
+    # ${CMAKE_SOURCE_DIR}/include/daemon
+    # ${CMAKE_SOURCE_DIR}/include/lcm_subscriber
     ${CMAKE_SOURCE_DIR}/lcm_types
 
     /usr/local/include/ddscxx
@@ -112,3 +125,4 @@ target_link_libraries(main
     lcm
     ${LOW_LEVEL_COMMON_LIBS}
 )
+
