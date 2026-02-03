@@ -10,3 +10,9 @@ processes:
     args: ["../configs/lcm_subscriber_config.yaml"]
     launch_in_terminal: true
     create_process_group: true
+  
+  - name: "main"
+    exec: "../build/main"
+    args: ["eth0"]
+    launch_in_terminal: true
+    create_process_group: true
