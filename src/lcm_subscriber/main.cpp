@@ -72,7 +72,7 @@ static void PrintDashboard(const LatestGps& s, const std::string& channel, std::
     std::cout << "Age          : " << age_ms << " ms since last RX\n";
     std::cout << "----------------------------------------------\n";
 
-    std::cout << std::fixed << std::setprecision(3);
+    std::cout << std::fixed << std::setprecision(8);
 
     // Epoch/time
     std::cout << "epoch        : " << m.epoch << "\n";
@@ -87,10 +87,10 @@ static void PrintDashboard(const LatestGps& s, const std::string& channel, std::
 
     // GGA
     std::cout << "is_gga_alive : " << (m.is_gga_alive ? "true" : "false") << "\n";
-    std::cout << std::setprecision(8);
+    // std::cout << std::setprecision(8);
     std::cout << "gga_lat [deg]: " << m.gga_lat << "\n";
     std::cout << "gga_lon [deg]: " << m.gga_lon << "\n";
-    std::cout << std::setprecision(3);
+    // std::cout << std::setprecision(3);
     std::cout << "gga_fixq     : " << m.gga_fixq << "\n";
     std::cout << "gga_nsat     : " << m.gga_nsat << "\n";
     std::cout << "gga_hdop     : " << m.gga_hdop << "\n";
@@ -101,7 +101,7 @@ static void PrintDashboard(const LatestGps& s, const std::string& channel, std::
 
     // RMC
     std::cout << "is_rmc_alive : " << (m.is_rmc_alive ? "true" : "false") << "\n";
-    std::cout << std::setprecision(3);
+    // std::cout << std::setprecision(3);
     std::cout << "sog [m/s]    : " << m.sog_mps << "\n";
     std::cout << "cog [deg]    : " << m.cog_deg << "\n";
 

@@ -162,11 +162,11 @@ public:
              << ucm_y
              << "\n";
 
-        std::cout << host_time_ns << ","
-             << gps_ts << ","
-             << ucm_x << ","
-             << ucm_y
-             << "\n";
+        // std::cout << host_time_ns << ","
+        //      << gps_ts << ","
+        //      << ucm_x << ","
+        //      << ucm_y
+        //      << "\n";
 
         Flush_();
     }

@@ -181,11 +181,11 @@ private:
 
     const std::vector<Waypoint> waypoint = {
         {"START",   0.0,                0.0},
-        {"WP1",     0.0,                5.0},
-        {"WP2",    -2.5,               5.0},
-        {"WP3",    -5.0,               5.0},
-        {"WP4",    -2.0,               0.0},
-        {"WP5",    -2.5,               0.0},
+        {"WP1",     0.0,                10.0},
+        {"WP2",    -5.0,               10.0},
+        {"WP3",    -10.0,               10.0},
+        {"WP4",    -5.0,               0.0},
+        {"WP5",    -10.0,               0.0},
     };
 
     double distanceToTarget(const Eigen::VectorXd& robot, const Waypoint& target)
