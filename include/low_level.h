@@ -20,6 +20,7 @@
 #include "Eigen/Dense"
 // #include "matplotlib-cpp/matplotlibcpp.h"
 #include "Joy_Stick.hpp"
+#include "Deploy_High.hpp"
 #include "Deploy.hpp"
 #include "Go2_Enum.h"
 
@@ -50,14 +51,20 @@ private:
     void Homing_Joint();
     void Encoder_Read();
     void IMU_Read();
+    void GPS_Read();
     void FootForce_Read();
     void Joint_Controller();
     void Observation_Update();
+    void High_Observation_Update();
     void Run();
     void PolicyRun();
+    void HighPolicyRun();
     void PlotRun();
     void JoyRun();
     void DataRun();
+
+    ShmData* shm_{nullptr};          
+    std::uint64_t last_counter_{0};  
 
     void JoyStick_Control()
     {
@@ -143,20 +150,55 @@ private:
         return rpy;
     }
 
-    // void LogData(const std::string &filename, double Data_1, double Data_2)
-    // {
-    //     std::ofstream file;
-    //     file.open(filename, std::ios_base::app);
-    //     if (file.is_open())
-    //     {
-    //         file << Data_1 << ", " << Data_2 << std::endl;
-    //         file.close();
-    //     }
-    //     else
-    //     {
-    //         std::cerr << "Unable to open file." << std::endl;
-    //     }
-    // }
+    double LPF(float x_k, float y_pre, float Ts, float tau_LPF)
+    {
+        float y_k;
+        y_k = (tau_LPF * y_pre + Ts * x_k) / (Ts + tau_LPF);
+        return y_k;
+    }
+
+    struct Waypoint
+    {
+        std::string name;
+        double x;
+        double y;
+    };
+
+    // const std::vector<Waypoint> waypoint = {
+    //     {"START",  0.0,                  0.0},
+    //     {"WP1",   -28.528205533861183, -22.330219073221087},
+    //     {"WP2",    -8.866188443964347, -47.973673513159156},
+    //     {"WP3",    -1.506497574446257, -42.23294421331957},
+    //     {"WP4",   -10.458634274080396, -28.987388744950294},
+    //     {"WP5",     9.75069282919867,  -12.969258994795382},
+    // };
+
+    const std::vector<Waypoint> waypoint = {
+        {"START",   0.0,                0.0},
+        {"WP1",     0.0,                20.0},
+        {"WP2",    -10.0,               20.0},
+        {"WP3",    -20.0,               20.0},
+        {"WP4",    -20.0,               0.0},
+        {"WP5",    -10.0,               0.0},
+    };
+
+    double distanceToTarget(const Eigen::VectorXd& robot, const Waypoint& target)
+    {
+        return std::sqrt(std::pow(robot(0) - target.x, 2) + std::pow(robot(1) - target.y, 2));
+    }
+
+    enum class FSM_Mode
+    {
+        start_to_way1 = 0,
+        way1_to_way2,
+        way2_to_way3,
+        way3_to_way4,
+        way4_to_way5,
+        way5_to_start
+    };
+
+    Waypoint Current_Target{"", 0.0, 0.0};
+    FSM_Mode current_mode = FSM_Mode::start_to_way1;
 
     Deploy ISSAC;
 
@@ -192,9 +234,13 @@ private:
     Eigen::Vector3d action_leg[NUM_LEG];
     Eigen::VectorXd torque_[NUM_LEG];
 
-    Eigen::Vector3d Robot_Pose;
+    Eigen::Vector3d High_Command;
+    Eigen::Vector3d LPF_High_Command;
+    Eigen::Vector3d Pre_High_Command;
+
+    Eigen::VectorXd Robot_Pos = Eigen::VectorXd::Zero(2);
     Eigen::Vector3d Box_Pose;
-    Eigen::Vector3d Target_Pose;
+    Eigen::VectorXd Target_Pos = Eigen::VectorXd::Zero(2);
 
     Eigen::Vector3d Body_Vel;
 
