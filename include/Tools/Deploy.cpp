@@ -213,9 +213,9 @@ void Deploy::Set_Joystick(double ly, double lx, double ry, double rx, int ud)
     //     std::cerr << "command_yaw_vel is NaN!!!" << std::endl;
     // }
 
-    Command(0) = command_x_vel * 1.0;
-    Command(1) = command_y_vel * 1.0;
-    Command(2) = command_yaw_vel * 1.0;
+    Command(0) = command_x_vel * 0.5;
+    Command(1) = command_y_vel * 0.5;
+    Command(2) = command_yaw_vel * 0.5;
     Command(3) = 0.28;
     // Command(4) = 0.0;
     // Command(5) = 0.0;
@@ -528,7 +528,7 @@ void Deploy::Inference()
 
         last_action = base_action;
 
-        std::cout << "action : " << last_action(0) << " | " << last_action(1) << " | " << last_action(2) << std::endl;
+        // std::cout << "action : " << last_action(0) << " | " << last_action(1) << " | " << last_action(2) << std::endl;
         {
             std::lock_guard<std::mutex> lock(runner_mutex);
         

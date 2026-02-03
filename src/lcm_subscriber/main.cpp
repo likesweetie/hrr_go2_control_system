@@ -153,8 +153,6 @@ int main(int argc, char** argv)
         [&mtx, &latest, &last_size_bytes, shm]
         (const void* /*data*/, std::size_t size, const std::string& /*channel*/, const gps_lcm_type::gps_t* msg)
         {
-            if (!msg) return;
-
             {
                 std::lock_guard<std::mutex> lk(mtx);
                 latest.has_msg = true;

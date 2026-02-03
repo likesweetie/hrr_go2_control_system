@@ -35,6 +35,11 @@ Custom::Custom()
 
     controlmode = INIT;
     motormode = M_HOMING;
+
+    current_mode = FSM_Mode::way5_to_start;
+
+    Target_Pos(0) = 0;
+    Target_Pos(1) = 5.0;
 }
 
 Custom::~Custom()
@@ -84,6 +89,14 @@ void signalHandler(int signum)
 
 void Custom::Init()
 {
+    const char* shm_name = std::getenv("SHM_NAME");
+    if (!shm_name) shm_name = "/shm0";
+
+    shm_ = shm_utils::OpenShm(shm_name);
+    if (!shm_) {
+        std::cerr << "[ERROR] OpenShm failed: " << shm_name << std::endl;
+    }
+
     InitLowCmd();
 
     /*create publisher*/
@@ -99,6 +112,7 @@ void Custom::Init()
 
     /*loop publishing thread*/
     RunThreadPtr = CreateRecurrentThreadEx("motionrun", UT_CPU_ID_NONE, 2000, &Custom::Run, this);
+    HighPolicyRunThreadPtr = CreateRecurrentThreadEx("highpolicyrun", UT_CPU_ID_NONE, 20000, &Custom::HighPolicyRun, this);
     PolicyRunThreadPtr = CreateRecurrentThreadEx("policyrun", UT_CPU_ID_NONE, 20000, &Custom::PolicyRun, this);
     // PlotThreadPtr = CreateRecurrentThreadEx("plotrun", UT_CPU_ID_NONE, 2000, &Custom::PlotRun, this);
     JoyThreadptr = CreateRecurrentThreadEx("joyrun", UT_CPU_ID_NONE, 2000, &Custom::JoyRun, this);
@@ -153,6 +167,17 @@ void Custom::Command(bool State)
         }
         case WALKING:
         {
+            if (!ucm_origin_init)
+            {
+                std::cout << "ucm origin set" << std::endl;
+                ucm_x_origin = shm_->gps_data.ucm_x;
+                ucm_y_origin = shm_->gps_data.ucm_y;
+                std::cout << ucm_x_origin << "  |  " << ucm_y_origin << "  |  " << std::endl;
+                ucm_origin_init = true;
+
+            }
+                
+
             if(start_count > 2)
             {
                 for (int i = 0; i < NUM_LEG; i++)
@@ -182,7 +207,7 @@ void Custom::Command(bool State)
                     // target_joint(i) = Default_Pos(i);
                 }
 
-                std::cout << "Action!!!!!!!" << std::endl;
+                // std::cout << "Action!!!!!!!" << std::endl;
             }
             else
             {
@@ -231,6 +256,7 @@ void Custom::Homing_Joint()
             if (inputChar == 'R' || inputChar == 'r')
             {
                 std::cout << "Start !!!" << std::endl;
+                
 
                 Via_Pos[FL] << q_(0), q_(1), q_(2);
                 Via_Pos[FR] << q_(3), q_(4), q_(5);
@@ -421,6 +447,33 @@ void Custom::IMU_Read()
     }
 }
 
+void Custom::GPS_Read()
+{
+    if (!shm_) return;
+
+
+    const GpsData& gps = shm_->gps_data;
+
+    // Robot_Pos에 저장 (x=lat, y=lon, z=alt)
+    
+    if (ucm_origin_init)
+    {
+        Robot_Pos(0) = gps.ucm_x - ucm_x_origin;
+        Robot_Pos(1) = gps.ucm_y - ucm_y_origin;
+        // Robot_Pos(2) = 0.f;
+    }
+    else
+    {
+        Robot_Pos(0) = 0.f;
+        Robot_Pos(1) = 0.f;
+        // Robot_Pos(2) = 0.f;
+    }
+
+    // std::cout << Robot_Pos(0) << "  |  " << Robot_Pos(1) << "  |  " << std::endl;
+
+
+}
+
 void Custom::FootForce_Read()
 {
     Foot_Force[FL] = low_state.foot_force()[FR];
@@ -495,11 +548,15 @@ void Custom::Run()
     Motion_Time++;
     Plot_Time += 0.002;
 
+
+
     if (Motion_Time < 500)
     {
         Encoder_Read();
         IMU_Read();
         FootForce_Read();
+        GPS_Read();
+        High_Observation_Update();
         Observation_Update();
     }
     else if (Motion_Time >= 500)
@@ -507,6 +564,8 @@ void Custom::Run()
         Encoder_Read();
         IMU_Read();
         FootForce_Read();
+        GPS_Read();
+        High_Observation_Update();
         Observation_Update();
 
         Command(Joint_State);
@@ -522,8 +581,16 @@ void Custom::Observation_Update()
 {
     ISSAC.Set_IMU(go2_imu_lin_acc, go2_imu_rpy_dot, Quat);
     ISSAC.Set_Encoder(q_, dq_);
-    ISSAC.Set_Joystick(x_vel_command, y_vel_command, 0.0, yaw_vel_command, height_command);  
+    // ISSAC.Set_Joystick(x_vel_command, y_vel_command, 0.0, yaw_vel_command, height_command);  
+    ISSAC.Set_Joystick(LPF_High_Command(0), LPF_High_Command(1), LPF_High_Command(2), yaw_vel_command, height_command);  
     ISSAC.Set_Observation();
+}
+
+void Custom::High_Observation_Update()
+{
+    HIGH.Set_IMU(go2_imu_lin_acc, go2_imu_rpy_dot, Quat);
+    HIGH.Set_Position(Robot_Pos, Target_Pos);
+    HIGH.Set_Observation();
 }
 
 void Custom::PolicyRun()
@@ -533,9 +600,27 @@ void Custom::PolicyRun()
         ISSAC.Inference();
 
         for (int i = 0; i < NUM_LEG; i++)
-        {
+        { 
             action_leg[i] = ISSAC.GetAction(i);
         }
+    }
+
+    Policy_time++;
+}
+
+void Custom::HighPolicyRun()
+{
+    if(Policy_time > 200)
+    {
+        HIGH.Inference();
+
+        High_Command = HIGH.GetAction();
+        LPF_High_Command(0) = LPF(High_Command(0), Pre_High_Command(0), 0.02, 0.01);
+        LPF_High_Command(1) = LPF(High_Command(1), Pre_High_Command(1), 0.02, 0.01);
+        LPF_High_Command(2) = LPF(High_Command(2), Pre_High_Command(2), 0.02, 0.01);
+        Pre_High_Command(0) = High_Command(0);
+        Pre_High_Command(1) = High_Command(1);
+        Pre_High_Command(2) = High_Command(2);
     }
 
     Policy_time++;
@@ -544,4 +629,87 @@ void Custom::PolicyRun()
 void Custom::JoyRun()
 {
     JoyStick_Control();
+}
+
+void Custom::FSM_Waypoint()
+{
+    const double arrive_dist = 2.0;
+    double dist = 0.0;
+
+    switch (current_mode)
+    {
+    case FSM_Mode::start_to_way1:
+        dist = distanceToTarget(Robot_Pos, waypoint[1]);
+        if (dist < arrive_dist)
+        {
+            current_mode = FSM_Mode::way1_to_way2;
+            Current_Target = waypoint[2];
+            Target_Pos(0) = Current_Target.x;
+            Target_Pos(1) = Current_Target.y;
+        }
+        // std::cout << "start_to_way1" << std::endl;
+        break;
+
+    case FSM_Mode::way1_to_way2:
+        dist = distanceToTarget(Robot_Pos, waypoint[2]);
+        if (dist < arrive_dist)
+        {
+            current_mode = FSM_Mode::way2_to_way3;
+            Current_Target = waypoint[3];
+            Target_Pos(0) = Current_Target.x;
+            Target_Pos(1) = Current_Target.y;
+        }
+            
+        // std::cout << "way1_to_way2" << std::endl;
+        break;
+
+    case FSM_Mode::way2_to_way3:
+        dist = distanceToTarget(Robot_Pos, waypoint[3]);
+        if (dist < arrive_dist)
+        {
+            current_mode = FSM_Mode::way3_to_way4;
+            Current_Target = waypoint[4];
+            Target_Pos(0) = Current_Target.x;
+            Target_Pos(1) = Current_Target.y;
+        }
+            
+        // std::cout << "way2_to_way3" << std::endl;
+        break;
+
+    case FSM_Mode::way3_to_way4:
+        dist = distanceToTarget(Robot_Pos, waypoint[4]);
+        if (dist < arrive_dist)
+        {
+            current_mode = FSM_Mode::way4_to_way5;
+            Current_Target = waypoint[5];
+            Target_Pos(0) = Current_Target.x;
+            Target_Pos(1) = Current_Target.y;
+        }
+        // std::cout << "way3_to_way4" << std::endl;
+        break;
+
+    case FSM_Mode::way4_to_way5:
+        dist = distanceToTarget(Robot_Pos, waypoint[5]);
+        if (dist < arrive_dist)
+        {
+            current_mode = FSM_Mode::way5_to_start;
+            Current_Target = waypoint[0];
+            Target_Pos(0) = Current_Target.x;
+            Target_Pos(1) = Current_Target.y;
+        }
+        // std::cout << "way4_to_way5" << std::endl;
+        break;
+
+    case FSM_Mode::way5_to_start:
+        dist = distanceToTarget(Robot_Pos, waypoint[0]);
+        if (dist < arrive_dist)
+        {
+            current_mode = FSM_Mode::start_to_way1;
+            Current_Target = waypoint[1];
+            Target_Pos(0) = Current_Target.x;
+            Target_Pos(1) = Current_Target.y;
+        }
+        // std::cout << "way5_to_start" << std::endl;
+        break;
+    }
 }
