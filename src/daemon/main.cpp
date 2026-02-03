@@ -166,7 +166,7 @@ int main(int argc, char** argv)
             std::cerr << "[WARN] spawn failed: " << p.name
                       << " errno=" << d.LastErrno() << " (" << std::strerror(d.LastErrno()) << ")\n";
         } else {
-            std::cout << "[INFO] spawned: " << p.name << " pid=" << *pid << "\n";
+            std::cout << "[INFO] spawned: " << p.name << " pid=" << *pid << "\n";999999
         }
     }
 
