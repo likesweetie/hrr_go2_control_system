@@ -84,7 +84,7 @@ void DeployHigh::Set_Position(Eigen::VectorXd Robot_pos_, Eigen::VectorXd Target
                 (Target_pos(1) - Robot_pos(1)),
                 0.0;
 
-    Eigen::Quaterniond q(Quat(0), Quat(1), Quat(2), Quat(3));
+    Eigen::Quaterniond q(Quat(3), Quat(0), Quat(1), Quat(2));
     q.normalize();
 
     Eigen::Matrix3d R = q.toRotationMatrix();
@@ -99,6 +99,8 @@ void DeployHigh::Set_Position(Eigen::VectorXd Robot_pos_, Eigen::VectorXd Target
     Local_Error_pos(0) = lx;
     Local_Error_pos(1) = ly;
 
+    // std::cout << "Robot_Pos : " << Robot_pos(0) << "  |  " << Robot_pos(1) << std::endl;
+    std::cout << "Local_Robot_Pos : " << Local_Error_pos(0) << "  |  " << Local_Error_pos(1) << std::endl;
     // std::cout << "Target_Pos : " << Target_pos(0) << "  |  " << Target_pos(1) << std::endl;
 }
 

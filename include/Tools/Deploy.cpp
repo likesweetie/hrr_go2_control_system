@@ -141,7 +141,7 @@ void Deploy::Set_Joystick(double ly, double lx, double ry, double rx, int ud)
 
     if (!std::isnan(ly)) 
     {
-        if(std::abs(ly) < 0.2)
+        if(std::abs(ly) < 0.1)
         {
             command_x_vel = 0.0;
         }
@@ -158,7 +158,7 @@ void Deploy::Set_Joystick(double ly, double lx, double ry, double rx, int ud)
 
     if (!std::isnan(lx)) 
     {
-        if(std::abs(lx) < 0.2)
+        if(std::abs(lx) < 0.1)
         {
             command_y_vel = 0.0;
         }
@@ -175,7 +175,7 @@ void Deploy::Set_Joystick(double ly, double lx, double ry, double rx, int ud)
 
     if (!std::isnan(rx)) 
     {
-        if(std::abs(rx) < 0.2)
+        if(std::abs(rx) < 0.1)
         {
             command_yaw_vel = 0.0;
         }

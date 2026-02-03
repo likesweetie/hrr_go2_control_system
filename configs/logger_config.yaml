@@ -1,0 +1,5 @@
+logger:
+  path: "/home/unitree/GPS_logs"
+  filename: "gps_log3.csv"
+  period_sec: 0.25   # 없으면 기본 0.1초
+  fsync: true       # 없으면 기본 true

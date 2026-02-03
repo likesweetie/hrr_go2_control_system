@@ -16,3 +16,9 @@ processes:
     args: ["eth0"]
     launch_in_terminal: true
     create_process_group: true
+
+  - name: "logger"
+    exec: "../build/logger"
+    args: ["../configs/logger_config.yaml"]
+    launch_in_terminal: true
+    create_process_group: true
