@@ -11,12 +11,16 @@ set(CMAKE_CXX_COMPILE_LAUNCHER ccache)
 # set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
 
 find_package(Python REQUIRED COMPONENTS Interpreter Development)
+find_package(PkgConfig REQUIRED)
+find_package(Eigen3 REQUIRED)
+find_package(yaml-cpp REQUIRED)
+find_package(lcm REQUIRED)
 
 message(STATUS "Python_EXECUTABLE=${Python_EXECUTABLE}")
 
 list(APPEND CMAKE_PREFIX_PATH "/opt/unitree_robotics/lib/cmake")
 find_package(unitree_sdk2 REQUIRED)
-find_package(Boost REQUIRED COMPONENTS program_options)
+# find_package(Boost REQUIRED COMPONENTS program_options)
 
 execute_process(
   COMMAND ${Python_EXECUTABLE} -c
@@ -29,13 +33,6 @@ execute_process(
 list(PREPEND CMAKE_PREFIX_PATH "${TORCH_PY_DIR}")
 find_package(Torch REQUIRED)
 message(STATUS "Torch found. TORCH_PY_DIR=${TORCH_PY_DIR}")
-
-
-find_package(Python REQUIRED COMPONENTS Interpreter Development)
-find_package(PkgConfig REQUIRED)
-find_package(Eigen3 REQUIRED)
-find_package(lcm REQUIRED)
-find_package(yaml-cpp REQUIRED)
 
 add_subdirectory(include/Tools)
 

@@ -5,6 +5,13 @@ shm:
   unlink_on_destroy: true
 
 processes:
+
+  - name: "unitree_mujoco"
+    exec: "../../simulate/build/unitree_mujoco"
+    args: []
+    launch_in_terminal: true
+    create_process_group: true
+
   - name: "lcm_subscriber"
     exec: "../build/lcm_subscriber"
     args: ["../configs/lcm_subscriber_config.yaml"]
@@ -13,7 +20,7 @@ processes:
   
   - name: "main"
     exec: "../build/main" 
-    args: ["eth0"]
+    args: ["lo"]
     launch_in_terminal: true
     create_process_group: true
 
@@ -22,3 +29,4 @@ processes:
     args: ["../configs/logger_config.yaml"]
     launch_in_terminal: true
     create_process_group: true
+
