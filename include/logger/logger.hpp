@@ -156,7 +156,7 @@ public:
         const double ucm_x = shm->gps_data.ucm_x;
         const double ucm_y = shm->gps_data.ucm_y;
 
-        ofs_ << host_time_ns << ","
+        ofs_ << std::fixed << std::setprecision(8) << host_time_ns << ","
              << gps_ts << ","
              << ucm_x << ","
              << ucm_y

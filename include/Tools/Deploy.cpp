@@ -213,9 +213,9 @@ void Deploy::Set_Joystick(double ly, double lx, double ry, double rx, int ud)
     //     std::cerr << "command_yaw_vel is NaN!!!" << std::endl;
     // }
 
-    Command(0) = command_x_vel * 0.5;
-    Command(1) = command_y_vel * 0.5;
-    Command(2) = command_yaw_vel * 0.5;
+    Command(0) = command_x_vel * 2.5;
+    Command(1) = command_y_vel * 1.0;
+    Command(2) = command_yaw_vel * 1.0;
     Command(3) = 0.28;
     // Command(4) = 0.0;
     // Command(5) = 0.0;
@@ -430,6 +430,7 @@ void Deploy::HistoryWrapperResi(torch::Tensor observation, int num_obs_history)
         resi_observation_history_tensor.size(1) != D ||
         resi_observation_history_tensor.scalar_type() != obs.scalar_type() ||
         resi_observation_history_tensor.device() != obs.device();
+        
 
     if(need_realloc)
     {

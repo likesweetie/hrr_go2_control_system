@@ -85,9 +85,9 @@ private:
         Stick_RX = gamepad.rx;
         Stick_RY = gamepad.ry;
 
-        x_vel_command = Stick_LY * 2.5;
+        x_vel_command = Stick_LY * 1.;
         y_vel_command = (-1) * (Stick_LX);
-        yaw_vel_command = (-1) * (Stick_RX) * 2.0; 
+        yaw_vel_command = (-1) * (Stick_RX) * 1.57; 
 
  
         if (gamepad.L1.on_press)

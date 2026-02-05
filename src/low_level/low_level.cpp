@@ -255,7 +255,7 @@ void Custom::Homing_Joint()
 
             if (inputChar == 'R' || inputChar == 'r')
             {
-                std::cout << "Start !!!" << std::endl;
+                std::cout << "Start  !!!" << std::endl;
                 
 
                 Via_Pos[FL] << q_(0), q_(1), q_(2);
@@ -581,8 +581,8 @@ void Custom::Observation_Update()
 {
     ISSAC.Set_IMU(go2_imu_lin_acc, go2_imu_rpy_dot, Quat);
     ISSAC.Set_Encoder(q_, dq_);
-    // ISSAC.Set_Joystick(x_vel_command, y_vel_command, 0.0, yaw_vel_command, height_command);  
-    ISSAC.Set_Joystick(LPF_High_Command(0), LPF_High_Command(1), 0.0, LPF_High_Command(2), height_command);  
+    ISSAC.Set_Joystick(x_vel_command, y_vel_command, 0.0, yaw_vel_command, height_command);  
+    // ISSAC.Set_Joystick(LPF_High_Command(0), LPF_High_Command(1), 0.0, LPF_High_Command(2), height_command);  
     ISSAC.Set_Observation();
 }
 
@@ -714,7 +714,7 @@ void Custom::FSM_Waypoint()
             Current_Target = waypoint[1];
             Target_Pos(0) = Current_Target.x;
             Target_Pos(1) = Current_Target.y;
-            std::cout << "start_to_way1" << std::endl;
+            std::cout << "start_to_way1 " << std::endl;
         }
         // std::cout << "way5_to_start" << std::endl;
         break;

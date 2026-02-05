@@ -5,6 +5,9 @@ cmake_minimum_required(VERSION 3.5)
 SET(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
 
+# set(CMAKE_C_COMPILE_LAUNCHER ccache)
+# set(CMAKE_CXX_COMPILE_LAUNCHER ccache)
+
 set(CMAKE_PREFIX_PATH /home/unitree/.local/lib/python3.8/site-packages/torch)
 set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
 
@@ -99,18 +102,30 @@ target_link_libraries(low_level_lib
     PRIVATE ${LOW_LEVEL_COMMON_LIBS}
 )
 
-add_executable(low_level src/low_level/low_level.cpp)
-target_include_directories(low_level
-    PRIVATE ${LOW_LEVEL_COMMON_INCLUDES}
-)
-target_link_libraries(low_level
-  PRIVATE
-    ${Python_LIBRARIES}
-    Tools
-    "${TORCH_LIBRARIES}"
-    lcm
-    ${LOW_LEVEL_COMMON_LIBS}
-)
+# target_precompile_headers(low_level_lib 
+#                             PRIVATE 
+#                             <torch/torch.h> 
+#                             <Eigen/Dense>
+#                             <unitree/robot/channel/channel_publisher.hpp>
+#                             <unitree/robot/channel/channel_subscriber.hpp>
+#                             <unitree/idl/go2/LowState_.hpp>
+#                             <unitree/idl/go2/LowCmd_.hpp>
+#                             <unitree/common/time/time_tool.hpp>
+#                             <unitree/common/thread/thread.hpp>
+#                             )
+
+# add_executable(low_level src/low_level/low_level.cpp)
+# target_include_directories(low_level
+#     PRIVATE ${LOW_LEVEL_COMMON_INCLUDES}
+# )
+# target_link_libraries(low_level
+#   PRIVATE
+#     ${Python_LIBRARIES}
+#     Tools
+#     "${TORCH_LIBRARIES}"
+#     lcm
+#     ${LOW_LEVEL_COMMON_LIBS}
+# )
 
 add_executable(main src/low_level/main.cpp)
 target_include_directories(main

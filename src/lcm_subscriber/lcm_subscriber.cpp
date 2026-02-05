@@ -60,10 +60,10 @@ bool LcmSubscriber::Init(const LcmSubscriberConfig& cfg)
     sub_ = lcm_->subscribe(cfg_.channel, &LcmSubscriber::OnMsg_, this);
     if (!sub_) {
         lcm_.reset();
-        std::cerr << "[ERROR] subscription has not been made!\n";
+        std::cerr << "[ERROR] subscription has not been made! \n";
         return false;
     }
-    std::cout << "[INFO] subscription has been made!\n";
+    std::cout << "[INFO] subscription has been made! \n";
     return true;
 }
 
