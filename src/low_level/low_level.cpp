@@ -119,30 +119,57 @@ void Custom::Init()
     JoyThreadptr = CreateRecurrentThreadEx("joyrun", UT_CPU_ID_NONE, 2000, &Custom::JoyRun, this);
 }
 
-// void LoadConfig(const std::string& yaml_path)
-// {
-//     try {
-//         YAML::Node cfg = YAML::LoadFile(yaml_path);
-//         std::cout << cfg << std::endl;
+void Custom::LoadConfig(const std::string& yaml_path)
+{
+    try {
+        YAML::Node cfg = YAML::LoadFile(yaml_path);
 
-//         // lcm.url
-//         if (!cfg["lcm"] || !cfg["lcm"]["url"]) {
-//             return;
-//         }
-//         cfg.lcm_url = cfg["lcm"]["url"].as<std::string>();
+        // waypoint.use_yaml 체크
+        if (!cfg["waypoint"] || !cfg["waypoint"]["use_yaml"]) {
+            std::cerr << "[Waypoint] waypoint.use_yaml not found\n";
+            return;
+        }
 
-//         // subscriber.channel
-//         if (!cfg["subscriber"] || !cfg["subscriber"]["channel"]) {
-//             return;
-//         }
-//         cfg.channel = root["subscriber"]["channel"].as<std::string>();
+        bool use_yaml = cfg["waypoint"]["use_yaml"].as<bool>();
+        if (!use_yaml) {
+            std::cerr << "[Waypoint] use_yaml == false\n";
+            return;
+        }
 
+        // waypoint.points 체크
+        if (!cfg["waypoint"]["points"] || !cfg["waypoint"]["points"].IsSequence()) {
+            std::cerr << "[Waypoint] waypoint.points not found or not sequence\n";
+            return;
+        }
 
-//         return cfg;
-//     } catch (const YAML::Exception&) {
-//         return std::nullopt;
-//     }
-// }
+        waypoint.clear();
+
+        const YAML::Node& points = cfg["waypoint"]["points"];
+        for (std::size_t i = 0; i < points.size(); ++i) {
+            const YAML::Node& p = points[i];
+
+            if (!p.IsSequence() || p.size() != 3) {
+                std::cerr << "[Waypoint] Invalid waypoint format at index "
+                          << i << "\n";
+                continue;
+            }
+
+            Waypoint wp;
+            wp.name = p[0].as<std::string>();
+            wp.x    = p[1].as<double>();
+            wp.y    = p[2].as<double>();
+
+            waypoint.push_back(wp);
+        }
+
+        std::cout << "[Waypoint] Loaded " << waypoint.size()
+                  << " waypoints\n";
+
+    } catch (const YAML::Exception& e) {
+        std::cerr << "[YAML ERROR] " << e.what() << "\n";
+    }
+}
+
 
 
 void Custom::InitLowCmd()

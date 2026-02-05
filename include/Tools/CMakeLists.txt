@@ -6,8 +6,7 @@ add_library(Tools Deploy.cpp Deploy_High.cpp)
 
 # PyTorch 경로 설정
 include_directories(
-    /home/unitree/.local/lib/python3.8/site-packages/torch/include
-    /home/unitree/.local/lib/python3.8/site-packages/torch/include/torch/csrc/api/include
+    ${EIGEN3_INCLUDE_DIR}
 )
 
 # PyTorch 라이브러리 링크

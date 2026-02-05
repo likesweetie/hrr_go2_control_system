@@ -38,6 +38,9 @@ using namespace unitree::robot;
 constexpr double PosStopF = (2.146E+9f);
 constexpr double VelStopF = (16000.0f);
 
+
+
+
 class Custom
 {
 public:
@@ -172,7 +175,9 @@ private:
         double y;
     };
 
-     const std::vector<Waypoint> waypoint = {
+
+    void LoadConfig(const std::string& yaml_path);
+    std::vector<Waypoint> waypoint = {
         {"START",   471419.869724,                4167740.629269},
         {"WP1",     471410.157533,                4167753.973662},
         {"WP2",    471384.732122,                4167735.102006},
@@ -181,7 +186,8 @@ private:
         {"WP5",    471399.339889,                4167724.205401},
     };
 
-    std::vector<Waypoint> Shifted_Waypoint = waypoint;
+    std::vector<Waypoint> shifted_waypoint = waypoint;
+
     // const std::vector<Waypoint> waypoint = {
     //     {"START",  0.0,                  0.0},
     //     {"WP1",   -28.528205533861183, -22.330219073221087},

@@ -1,4 +1,3 @@
-
 project(low_level)
 cmake_minimum_required(VERSION 3.5)
 
@@ -8,12 +7,30 @@ set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_C_COMPILE_LAUNCHER ccache)
 set(CMAKE_CXX_COMPILE_LAUNCHER ccache)
 
-set(CMAKE_PREFIX_PATH /home/unitree/.local/lib/python3.8/site-packages/torch)
-set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
+# set(CMAKE_PREFIX_PATH /home/unitree/.local/lib/python3.8/site-packages/torch)
+# set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)
 
-# find_package(CUDA REQUIRED)
+find_package(Python REQUIRED COMPONENTS Interpreter Development)
+
+message(STATUS "Python_EXECUTABLE=${Python_EXECUTABLE}")
+
+list(APPEND CMAKE_PREFIX_PATH "/opt/unitree_robotics/lib/cmake")
+find_package(unitree_sdk2 REQUIRED)
+find_package(Boost REQUIRED COMPONENTS program_options)
+
+execute_process(
+  COMMAND ${Python_EXECUTABLE} -c
+          "import os, torch; print(os.path.dirname(torch.__file__))"
+  OUTPUT_VARIABLE TORCH_PY_DIR
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+# TorchConfig.cmake 탐색 힌트로 추가
+list(PREPEND CMAKE_PREFIX_PATH "${TORCH_PY_DIR}")
 find_package(Torch REQUIRED)
-find_package(Eigen3 REQUIRED)
+message(STATUS "Torch found. TORCH_PY_DIR=${TORCH_PY_DIR}")
+
+
 find_package(Python REQUIRED COMPONENTS Interpreter Development)
 find_package(PkgConfig REQUIRED)
 find_package(Eigen3 REQUIRED)
@@ -74,21 +91,18 @@ set(LOW_LEVEL_COMMON_INCLUDES
     # ${CMAKE_SOURCE_DIR}/include/daemon
     # ${CMAKE_SOURCE_DIR}/include/lcm_subscriber
     ${CMAKE_SOURCE_DIR}/lcm_types
-
-    /usr/local/include/ddscxx
-    /usr/local/include/iceoryx/v2.0.2
-
-    /home/unitree/.local/lib/python3.8/site-packages/torch/include
-    /home/unitree/.local/lib/python3.8/site-packages/torch/include/torch/csrc/api/include
 )
 
 set(LOW_LEVEL_COMMON_LIBS
+    torch
     unitree_sdk2
     ddsc
     ddscxx
     rt
     pthread
+    yaml-cpp
 )
+
 
 # ---------------------------------------------------------------------------
 

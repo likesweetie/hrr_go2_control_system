@@ -17,6 +17,11 @@
 using namespace torch::indexing;
 using torch::indexing::Slice;
 
+#pragma once
+using float32_t = float;
+using float64_t = double;
+
+
 class DeployHigh
 {
 public:
