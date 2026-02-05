@@ -5,8 +5,8 @@ cmake_minimum_required(VERSION 3.5)
 SET(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
 
-# set(CMAKE_C_COMPILE_LAUNCHER ccache)
-# set(CMAKE_CXX_COMPILE_LAUNCHER ccache)
+set(CMAKE_C_COMPILE_LAUNCHER ccache)
+set(CMAKE_CXX_COMPILE_LAUNCHER ccache)
 
 set(CMAKE_PREFIX_PATH /home/unitree/.local/lib/python3.8/site-packages/torch)
 set(CMAKE_CUDA_COMPILER /usr/local/cuda/bin/nvcc)

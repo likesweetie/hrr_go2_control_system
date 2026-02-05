@@ -25,6 +25,8 @@
 #include "Go2_Enum.h"
 #include "shm_utils.hpp"
 
+#include <yaml-cpp/yaml.h>
+
 using namespace unitree::common;
 using namespace unitree::robot;
 // namespace plt = matplotlibcpp;
@@ -170,6 +172,16 @@ private:
         double y;
     };
 
+     const std::vector<Waypoint> waypoint = {
+        {"START",   471419.869724,                4167740.629269},
+        {"WP1",     471410.157533,                4167753.973662},
+        {"WP2",    471384.732122,                4167735.102006},
+        {"WP3",    471402.735208,                4167707.860495},
+        {"WP4",    471409.210002,                4167712.124383},
+        {"WP5",    471399.339889,                4167724.205401},
+    };
+
+    std::vector<Waypoint> Shifted_Waypoint = waypoint;
     // const std::vector<Waypoint> waypoint = {
     //     {"START",  0.0,                  0.0},
     //     {"WP1",   -28.528205533861183, -22.330219073221087},
@@ -179,14 +191,14 @@ private:
     //     {"WP5",     9.75069282919867,  -12.969258994795382},
     // };
 
-    const std::vector<Waypoint> waypoint = {
-        {"START",   0.0,                0.0},
-        {"WP1",     0.0,                10.0},
-        {"WP2",    -5.0,               10.0},
-        {"WP3",    -10.0,               10.0},
-        {"WP4",    -5.0,               0.0},
-        {"WP5",    -10.0,               0.0},
-    };
+    // const std::vector<Waypoint> waypoint = {
+    //     {"START",   0.0,                0.0},
+    //     {"WP1",     0.0,                10.0},
+    //     {"WP2",    -5.0,               10.0},
+    //     {"WP3",    -10.0,               10.0},
+    //     {"WP4",    -5.0,               0.0},
+    //     {"WP5",    -10.0,               0.0},
+    // };
 
     double distanceToTarget(const Eigen::VectorXd& robot, const Waypoint& target)
     {
@@ -203,7 +215,7 @@ private:
         way5_to_start
     };
 
-    Waypoint Current_Target{"", 0.0, 0.0};
+    Waypoint Current_Target{"", 471419.869724, 4167740.629269};
     FSM_Mode current_mode = FSM_Mode::way5_to_start;
 
     Deploy ISSAC;
