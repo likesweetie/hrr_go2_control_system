@@ -20,7 +20,7 @@ DeployHigh::DeployHigh() : device(torch::kCPU)
 
     try {
 
-        actor = torch::jit::load("/home/unitree/HRR_SM/Go2_Residual_kale/model/high_policy_10000.pt"); 
+        actor = torch::jit::load("../model/high_policy_10000.pt"); 
         actor.to(torch::kCPU);
         actor.eval();
 

@@ -515,22 +515,16 @@ void Custom::GPS_Read()
     
     if (ucm_origin_init)
     {
-        Robot_Pos(0) = (gps.ucm_x - ucm_x_origin) * 1.0f;
-        Robot_Pos(1) = (gps.ucm_y - ucm_y_origin)* 1.0f;
+        Robot_Pos(0) = (gps.ucm_x) * 1.0f;
+        Robot_Pos(1) = (gps.ucm_y)* 1.0f;
         // Robot_Pos(2) = 0.f;
     }
     else
     {
-        Robot_Pos(0) = 0.f;
-        Robot_Pos(1) = 0.f;
+        Robot_Pos(0) = gps.ucm_x;
+        Robot_Pos(1) = gps.ucm_y;
 
-        for (auto& wp :shifted_waypoint)
-        {
-            wp.x - gps.ucm_x;
-            wp.y - gps.ucm_y;
-        }
-
-        
+      
         // Robot_Pos(2) = 0.f;
     }
 
@@ -701,88 +695,76 @@ void Custom::FSM_Waypoint()
     const double arrive_dist = 1.0;
     double dist = 0.0;
 
+    auto hold_and_transition = [&](FSM_Mode next_mode, const Waypoint& next_target, const char* msg)
+    {
+        if (arrive_count_ >= ARRIVE_HOLD_STEPS)
+        {
+            current_mode = next_mode;
+            Current_Target = next_target;
+            Target_Pos(0) = Current_Target.x;
+            Target_Pos(1) = Current_Target.y;
+            std::cout << msg << std::endl;
+
+            arrive_count_ = 0;
+        }
+    };
+
     switch (current_mode)
     {
     case FSM_Mode::start_to_way1:
-        dist = distanceToTarget(Robot_Pos, shifted_waypoint[1]);
-        if (dist < arrive_dist)
-        {
-            current_mode = FSM_Mode::way1_to_way2;
-            Current_Target = shifted_waypoint[2];
-            Target_Pos(0) = Current_Target.x;
-            Target_Pos(1) = Current_Target.y;
-            std::cout << "way1_to_way2" << std::endl;
-        }
-        // std::cout << "start_to_way1" << std::endl;
+        dist = distanceToTarget(Robot_Pos, waypoint[1]);
         break;
 
     case FSM_Mode::way1_to_way2:
         dist = distanceToTarget(Robot_Pos, waypoint[2]);
-        if (dist < arrive_dist)
-        {
-            current_mode = FSM_Mode::way2_to_way3;
-            Current_Target = shifted_waypoint[3];
-            Target_Pos(0) = Current_Target.x;
-            Target_Pos(1) = Current_Target.y;
-            std::cout << "way2_to_way3" << std::endl;
-        }
-            
-        // std::cout << "way1_to_way2" << std::endl;
         break;
 
     case FSM_Mode::way2_to_way3:
-        dist = distanceToTarget(Robot_Pos, shifted_waypoint[3]);
-        if (dist < arrive_dist)
-        {
-            current_mode = FSM_Mode::way3_to_way4;
-            Current_Target = shifted_waypoint[4];
-            Target_Pos(0) = Current_Target.x;
-            Target_Pos(1) = Current_Target.y;
-            std::cout << "way3_to_way4" << std::endl;
-        }
-            
-        // std::cout << "way2_to_way3" << std::endl;
+        dist = distanceToTarget(Robot_Pos, waypoint[3]);
         break;
 
     case FSM_Mode::way3_to_way4:
-        dist = distanceToTarget(Robot_Pos, shifted_waypoint[4]);
-        if (dist < arrive_dist)
-        {
-            current_mode = FSM_Mode::way4_to_way5;
-            Current_Target = shifted_waypoint[5];
-            Target_Pos(0) = Current_Target.x;
-            Target_Pos(1) = Current_Target.y;
-            std::cout << "way4_to_way5" << std::endl;
-        }
-        // std::cout << "way3_to_way4" << std::endl;
+        dist = distanceToTarget(Robot_Pos, waypoint[4]);
         break;
 
     case FSM_Mode::way4_to_way5:
-        dist = distanceToTarget(Robot_Pos, shifted_waypoint[5]);
-        if (dist < arrive_dist)
-        {
-            current_mode = FSM_Mode::way5_to_start;
-            Current_Target = shifted_waypoint[0];
-            Target_Pos(0) = Current_Target.x;
-            Target_Pos(1) = Current_Target.y;
-            std::cout << "way5_to_startS" << std::endl;
-            
-        }
-        // std::cout << "way4_to_way5" << std::endl;
+        dist = distanceToTarget(Robot_Pos, waypoint[5]);
         break;
 
     case FSM_Mode::way5_to_start:
-        dist = distanceToTarget(Robot_Pos, shifted_waypoint[0]);
-        if (dist < arrive_dist)
-        {
-            current_mode = FSM_Mode::start_to_way1;
-            Current_Target = shifted_waypoint[1];
-            Target_Pos(0) = Current_Target.x;
-            Target_Pos(1) = Current_Target.y;
-            std::cout << "start_to_way1 " << std::endl;
-        }
-        // std::cout << "way5_to_start" << std::endl;
+        dist = distanceToTarget(Robot_Pos, waypoint[0]);
         break;
     }
 
+    // 2) 연속 도착 카운트 업데이트
+    if (dist < arrive_dist) arrive_count_++;
+    else arrive_count_ = 0;
+
+    // 3) 카운트가 충분하면 전이
+    switch (current_mode)
+    {
+    case FSM_Mode::start_to_way1:
+        hold_and_transition(FSM_Mode::way1_to_way2, waypoint[2], "way1_to_way2");
+        break;
+
+    case FSM_Mode::way1_to_way2:
+        hold_and_transition(FSM_Mode::way2_to_way3, waypoint[3], "way2_to_way3");
+        break;
+
+    case FSM_Mode::way2_to_way3:
+        hold_and_transition(FSM_Mode::way3_to_way4, waypoint[4], "way3_to_way4");
+        break;
+
+    case FSM_Mode::way3_to_way4:
+        hold_and_transition(FSM_Mode::way4_to_way5, waypoint[5], "way4_to_way5");
+        break;
+
+    case FSM_Mode::way4_to_way5:
+        hold_and_transition(FSM_Mode::way5_to_start, waypoint[0], "way5_to_start");
+        break;
+
+    case FSM_Mode::way5_to_start:
+        hold_and_transition(FSM_Mode::start_to_way1, waypoint[1], "start_to_way1");
+        break;
+    }
 }

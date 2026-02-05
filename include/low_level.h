@@ -38,9 +38,6 @@ using namespace unitree::robot;
 constexpr double PosStopF = (2.146E+9f);
 constexpr double VelStopF = (16000.0f);
 
-
-
-
 class Custom
 {
 public:
@@ -70,12 +67,15 @@ private:
     void DataRun();
     void FSM_Waypoint();
 
-    ShmData* shm_{nullptr};          
-    std::uint64_t last_counter_{0};  
+    ShmData *shm_{nullptr};
+    std::uint64_t last_counter_{0};
 
     double ucm_x_origin = 0.0f;
     double ucm_y_origin = 0.0f;
     bool ucm_origin_init = false;
+
+    int arrive_count_ = 0;
+    static constexpr int ARRIVE_HOLD_STEPS = 50;
 
     void JoyStick_Control()
     {
@@ -92,9 +92,8 @@ private:
 
         x_vel_command = Stick_LY * 1.;
         y_vel_command = (-1) * (Stick_LX);
-        yaw_vel_command = (-1) * (Stick_RX) * 1.57; 
+        yaw_vel_command = (-1) * (Stick_RX) * 1.57;
 
- 
         if (gamepad.L1.on_press)
         {
             BL_Button = 1;
@@ -175,15 +174,14 @@ private:
         double y;
     };
 
-
-    void LoadConfig(const std::string& yaml_path);
+    void LoadConfig(const std::string &yaml_path);
     std::vector<Waypoint> waypoint = {
-        {"START",   471419.869724,                4167740.629269},
-        {"WP1",     471410.157533,                4167753.973662},
-        {"WP2",    471384.732122,                4167735.102006},
-        {"WP3",    471402.735208,                4167707.860495},
-        {"WP4",    471409.210002,                4167712.124383},
-        {"WP5",    471399.339889,                4167724.205401},
+        {"START", 471419.869724, 4167740.629269},
+        {"WP1", 471410.157533, 4167753.973662},
+        {"WP2", 471384.732122, 4167735.102006},
+        {"WP3", 471402.735208, 4167707.860495},
+        {"WP4", 471409.210002, 4167712.124383},
+        {"WP5", 471399.339889, 4167724.205401},
     };
 
     std::vector<Waypoint> shifted_waypoint = waypoint;
@@ -206,7 +204,7 @@ private:
     //     {"WP5",    -10.0,               0.0},
     // };
 
-    double distanceToTarget(const Eigen::VectorXd& robot, const Waypoint& target)
+    double distanceToTarget(const Eigen::VectorXd &robot, const Waypoint &target)
     {
         return std::sqrt(std::pow(robot(0) - target.x, 2) + std::pow(robot(1) - target.y, 2));
     }
@@ -297,7 +295,7 @@ private:
     double Torque[12] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     double Target_q[12] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
-    double kd[12] = {0.9, 1.3, 0.7,     0.9, 1.3, 0.7,      0.9, 1.3, 0.7,      0.9, 1.3, 0.7};
+    double kd[12] = {0.9, 1.3, 0.7, 0.9, 1.3, 0.7, 0.9, 1.3, 0.7, 0.9, 1.3, 0.7};
 
     ThreadPtr RunThreadPtr;
     ThreadPtr PlotThreadPtr;
@@ -324,7 +322,7 @@ private:
     int height_command = 0;
 
     int BL_Button, BR_Button;
-     int UP_Button, DOWN_Button;
+    int UP_Button, DOWN_Button;
 
     bool Joint_State = false;
     bool Motor_State = false;
@@ -341,8 +339,6 @@ private:
     double Stick_LY = 0.0;
     double Stick_RX = 0.0;
     double Stick_RY = 0.0;
-
-
 
 protected:
     // publisher
